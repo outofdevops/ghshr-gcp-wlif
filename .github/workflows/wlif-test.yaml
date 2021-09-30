@@ -1,0 +1,59 @@
+name: GitHub Actions
+on: [push]
+jobs:
+  Job-One:
+    runs-on: self-hosted
+    permissions:
+      id-token: write
+    steps:
+      - shell: bash
+        run: echo ${ACTIONS_ID_TOKEN_REQUEST_URL} > f.txt | head f.txt
+      - shell: bash
+        run: echo ${ACTIONS_ID_TOKEN_REQUEST_TOKEN} > r.txt | head r.txt
+      - shell: bash
+        run: env
+      - shell: bash
+        run: sleep 3 && node -e "console.log(process.env)"
+      - id: idtoken
+        shell: bash
+        run: |
+          token=${ACTIONS_ID_TOKEN_REQUEST_TOKEN}
+          runtimeUrl=${ACTIONS_ID_TOKEN_REQUEST_URL}
+          runtimeUrl="${runtimeUrl}&audience=sigstore"
+          echo ::set-output name=idtoken::$(curl -H "Authorization: bearer ${token}" ${runtimeUrl} | jq -r ".value")
+          echo $idtoken
+      - id: sts_token
+        shell: bash
+        run: |
+          STS_TOKEN=$(curl -0 -X POST https://sts.googleapis.com/v1/token \
+              -H 'Content-Type: text/json; charset=utf-8' \
+              -d @- <<EOF | jq -r .access_token
+              {
+                  "audience"           : "//iam.googleapis.com/projects/${{ secrets.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/gh-pool/providers/gh-provider",
+                  "grantType"          : "urn:ietf:params:oauth:grant-type:token-exchange",
+                  "requestedTokenType" : "urn:ietf:params:oauth:token-type:access_token",
+                  "scope"              : "https://www.googleapis.com/auth/cloud-platform",
+                  "subjectTokenType"   : "urn:ietf:params:oauth:token-type:jwt",
+                  "subjectToken"       : "${{steps.idtoken.outputs.idtoken}}"
+              }
+          EOF)   
+          echo ::set-output name=sts_token::$STS_TOKEN
+      - id: access_token
+        shell: bash
+        run: |
+          ACCESS_TOKEN=$(curl -0 -X POST https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${{ secrets.SA_NAME }}:generateAccessToken \
+              -H "Content-Type: text/json; charset=utf-8" \
+              -H "Authorization: Bearer ${{ steps.sts_token.outputs.sts_token }}" \
+              -d @- <<EOF | jq -r .accessToken
+              {
+                  "scope": [ "https://www.googleapis.com/auth/cloud-platform" ]
+              }
+          EOF)
+          echo $ACCESS_TOKEN
+          echo ::set-output name=access_token::$ACCESS_TOKEN
+      - name: 'Access secret'
+        run: |-
+          curl https://secretmanager.googleapis.com/v1/projects/${{ secrets.PROJECT_ID }}/secrets/my-secret/versions/1:access \
+            --header "Authorization: Bearer ${{ steps.access_token.outputs.access_token }}"
+          echo "Done!!!"    
+          
