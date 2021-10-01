@@ -7,9 +7,9 @@ jobs:
       id-token: write
     steps:
       - shell: bash
-        run: echo ${ACTIONS_ID_TOKEN_REQUEST_URL} > f.txt | head f.txt
+        run: echo ${ACTIONS_ID_TOKEN_REQUEST_URL} > url.txt
       - shell: bash
-        run: echo ${ACTIONS_ID_TOKEN_REQUEST_TOKEN} > r.txt | head r.txt
+        run: echo ${ACTIONS_ID_TOKEN_REQUEST_TOKEN} > token.txt
       - id: idtoken
         shell: bash
         run: |
@@ -17,7 +17,7 @@ jobs:
           runtimeUrl=${ACTIONS_ID_TOKEN_REQUEST_URL}
           runtimeUrl="${runtimeUrl}&audience=sigstore"
           echo ::set-output name=idtoken::$(curl -H "Authorization: bearer ${token}" ${runtimeUrl} | jq -r ".value")
-          echo $idtoken
+          echo $idtoken > idtoken.txt
       - id: sts_token
         shell: bash
         run: |
@@ -33,7 +33,7 @@ jobs:
                   "subjectToken"       : "${{steps.idtoken.outputs.idtoken}}"
               }
           EOF)
-          echo $STS_TOKEN
+          echo $STS_TOKEN > sts_token.txt
           echo ::set-output name=sts_token::$STS_TOKEN
       - id: access_token
         shell: bash
@@ -46,7 +46,7 @@ jobs:
                   "scope": [ "https://www.googleapis.com/auth/cloud-platform" ]
               }
           EOF)
-          echo $ACCESS_TOKEN
+          echo $ACCESS_TOKEN > access_token.txt
           echo ::set-output name=access_token::$ACCESS_TOKEN
       - name: 'Access secret'
         run: |-
