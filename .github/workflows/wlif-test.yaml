@@ -16,8 +16,9 @@ jobs:
           token=${ACTIONS_ID_TOKEN_REQUEST_TOKEN}
           runtimeUrl=${ACTIONS_ID_TOKEN_REQUEST_URL}
           runtimeUrl="${runtimeUrl}&audience=sigstore"
-          echo ::set-output name=idtoken::$(curl -H "Authorization: bearer ${token}" ${runtimeUrl} | jq -r ".value")
-          echo $idtoken > idtoken.txt
+          ID_TOKEN=$(curl -H "Authorization: bearer ${token}" ${runtimeUrl} | jq -r ".value")
+          echo ::set-output name=idtoken::$ID_TOKEN
+          echo $ID_TOKEN > idtoken.txt
       - id: sts_token
         shell: bash
         run: |
