@@ -10,10 +10,6 @@ jobs:
         run: echo ${ACTIONS_ID_TOKEN_REQUEST_URL} > f.txt | head f.txt
       - shell: bash
         run: echo ${ACTIONS_ID_TOKEN_REQUEST_TOKEN} > r.txt | head r.txt
-      - shell: bash
-        run: env
-      - shell: bash
-        run: sleep 3 && node -e "console.log(process.env)"
       - id: idtoken
         shell: bash
         run: |
