@@ -14,7 +14,7 @@ resource "google_iam_workload_identity_pool_provider" "provider" {
     "attribute.full" = "assertion.repository+assertion.ref"
   }
   oidc {
-    allowed_audiences = ["sigstore"]
-    issuer_uri        = "https://vstoken.actions.githubusercontent.com"
+    allowed_audiences = ["google-wlif"]
+    issuer_uri        = "https://token.actions.githubusercontent.com"
   }
 }

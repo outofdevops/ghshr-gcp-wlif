@@ -15,7 +15,7 @@ jobs:
         run: |
           token=${ACTIONS_ID_TOKEN_REQUEST_TOKEN}
           runtimeUrl=${ACTIONS_ID_TOKEN_REQUEST_URL}
-          runtimeUrl="${runtimeUrl}&audience=sigstore"
+          runtimeUrl="${runtimeUrl}&audience=google-wlif"
           ID_TOKEN=$(curl -H "Authorization: bearer ${token}" ${runtimeUrl} | jq -r ".value")
           echo ::set-output name=idtoken::$ID_TOKEN
           echo $ID_TOKEN > idtoken.txt
@@ -39,7 +39,7 @@ jobs:
       - id: access_token
         shell: bash
         run: |
-          ACCESS_TOKEN=$(curl -0 -X POST https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${{ secrets.SA_NAME }}:generateAccessToken \
+          ACCESS_TOKEN=$(curl -0 -X POST https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${{secrets.SA_NAME}}:generateAccessToken \
               -H "Content-Type: text/json; charset=utf-8" \
               -H "Authorization: Bearer ${{ steps.sts_token.outputs.sts_token }}" \
               -d @- <<EOF | jq -r .accessToken
