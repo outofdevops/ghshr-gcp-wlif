@@ -1,1 +1,15 @@
+name: GitHub Actions
+on: [push]
+jobs:
+  Job-One:
+    runs-on: self-hosted
+    permissions:
+      id-token: write
+    steps:
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v0.4.0'
+      with:
+        workload_identity_provider: 'projects/926721280200/locations/global/workloadIdentityPools/my-workload-pool/providers/my-provider'
+        service_account: 'wif-test@praxis-beacon-274520.iam.gserviceaccount.com'
 
